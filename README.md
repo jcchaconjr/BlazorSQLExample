@@ -11,7 +11,7 @@ I have been using this project to:
 
 Credits to:
 - YouTube users GreatStack for the original Clock sample used to refactor, not to mention Coding Snow for the CSS elements; the Date implementation was my own addition
-- GreatStack was also the inspiration for my Weather component, replacing the original project sample page that displayed mock data in a table.
+- GreatStack was also the inspiration for my Weather component, replacing the original project sample page that displayed mock data in a table. I added the metric/imperial option
 - The .NET tutorial series on "Blazor Development for Beginners" for the Movie sample page. This page was created as presented so that I could follow along with the video series and understand the components.
 
 -JC
