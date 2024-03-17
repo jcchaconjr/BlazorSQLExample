@@ -1,0 +1,98 @@
+﻿@page "/calculator"
+@using Microsoft.AspNetCore.Authorization
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime 
+
+<PageTitle>Calculator</PageTitle>
+
+@attribute [Authorize]
+
+
+<AuthorizeView>
+    <h1>Calculator</h1>
+
+    <div id="calcbody">
+        <div id="calculator">
+            <input @bind="display" id="display" readonly />
+            <div id="keys">
+                <button @onclick="()=>AppendToDisplay(plus)" class="operator-btn">@plus</button>
+                <button @onclick="()=>AppendToDisplay(seven)">@seven</button>
+                <button @onclick="()=>AppendToDisplay(eight)">@eight</button>
+                <button @onclick="()=>AppendToDisplay(nine)">@nine</button>
+                <button @onclick="()=>AppendToDisplay(minus)" class="operator-btn">@minus</button>
+                <button @onclick="()=>AppendToDisplay(four)">@four</button>
+                <button @onclick="()=>AppendToDisplay(five)">@five</button>
+                <button @onclick="()=>AppendToDisplay(six)">@six</button>
+                <button @onclick="()=>AppendToDisplay(mult)" class="operator-btn">@mult</button>
+                <button @onclick="()=>AppendToDisplay(one)">@one</button>
+                <button @onclick="()=>AppendToDisplay(two)">@two</button>
+                <button @onclick="()=>AppendToDisplay(three)">@three</button>
+                <button @onclick="()=>AppendToDisplay(divide)" class="operator-btn">@divide</button>
+                <button @onclick="()=>AppendToDisplay(zero)">@zero</button>
+                <button @onclick="()=>AppendToDisplay(dot)">@dot</button>
+                <button @onclick="()=>Calculate(display)">=</button>
+                <button @onclick="clearDisplay" class="operator-btn">C</button>
+            </div>
+        </div>
+
+    </div>
+</AuthorizeView>
+
+
+@code {
+
+    string display = "0";
+    string plus = "+";
+    string seven = "7";
+    string eight = "8";
+    string nine = "9";
+    string minus = "-";
+    string four = "4";
+    string five = "5";
+    string six = "6";
+    string mult = "*";
+    string one = "1";
+    string two = "2";
+    string three = "3";
+    string divide = "/";
+    string zero = "0";
+    string dot = ".";
+
+    public void AppendToDisplay(string value)
+    {
+        if (display == "0" || display == "ERROR")
+        {
+            display = value;
+        }
+        else
+        {
+            display += value;
+        }
+    }
+
+    public void clearDisplay()
+    {
+        display = "0";
+
+    }
+
+    public async void Calculate(string eval)
+    {
+        System.Data.DataTable dt = new System.Data.DataTable();
+
+        try
+        {
+            string calc = dt.Compute(eval, "").ToString();
+            display = calc;
+        }
+        catch
+        {
+            display = "ERROR";
+        }
+        await JSRuntime.InvokeVoidAsync("console.log", "Calculating and returning the value: \"" + display + "\"");
+    }
+
+
+
+
+}

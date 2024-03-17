@@ -1,0 +1,238 @@
+﻿@page "/weather"
+@* @attribute [StreamRendering] *@
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@using Newtonsoft.Json
+
+<PageTitle>Weather</PageTitle>
+<body>
+
+    <h1>Weather</h1>
+    <p>Real-time weather! Enter the city to see the current weather there:</p>
+    <div class="card">
+        <div class="search" >
+            <input type="text" @bind=city placeholder="Enter city name" spellcheck="false" />
+            <button @onclick="()=>checkWeather()">
+                <img src="images/search.png" />
+            </button>
+        </div>
+        <div class="weather">
+            <img src="@weatherImg" class="weather-icon" />
+            <h1 class="temp">@temperature</h1>
+            <h2 class="city">@city</h2>
+            <div class="details">
+                <div class="col">
+                    <img src="images/humidity.png" />
+                    <div>
+                        <p class="humidity">@humidity</p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <img src="images/wind.png" />
+                    <div>
+                        <p class="wind">@windSpd</p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="switchspace">
+                °C
+                <label class="switch">
+                    <input type="checkbox" checked="@IsChecked" @onchange=CheckboxChanged >
+                    <span class="slider round"></span>
+                </label>
+                °F
+            </div>
+        </div>
+    </div>
+
+</body>
+
+@code 
+{
+
+    static readonly HttpClient client = new HttpClient();
+    const string apikey = "fdabd13a3aa2d60062efe20796ab4e56";
+    const string apiURI = "https://api.openweathermap.org/data/2.5/weather?";
+
+    string setMeasure = "";
+    string city = "";
+    string weatherImg = "images/unknown.png";
+    string humidity = "--";
+    string windSpd = "--";
+    string temperature = "--";
+    string tempMeasure = "";
+    string windMeasure = "";
+
+    [Parameter]
+    public bool IsChecked { get; set; } = true;
+    private bool isChecked;
+
+    public class Coordinates
+    {
+        public double lon;
+        public double lat;
+    }
+
+    public class WeatherStats
+    {
+        public int id;
+        public string? main;
+        public string? description;
+        public string? icon;
+    }
+
+    public class Main
+    {
+        public float temp;
+        public float feels_like;
+        public float temp_min;
+        public float temp_max;
+        public int pressure;
+        public int humidity;
+    }
+
+    public class Wind
+    {
+        public int deg { get; set; } = 0;
+        public float speed { get; set; } = 0;
+    }
+
+    public class Clouds
+    {
+        public int all;
+    }
+
+    public class SysData
+    {
+        public int type;
+        public int id;
+        public string? country;
+        public long sunrise;
+        public long sunset;
+    }
+
+    public class JSONWeather
+    {
+        public Coordinates? coord;
+        public List<WeatherStats>? weather;
+        public string? @base;
+        public Main? main;
+        public Wind? wind;
+        public Clouds? clouds;
+        public long dt;
+        public SysData? sys;
+        public int timezone;
+        public long id;
+        public string? name;
+        public int cod;
+    }
+
+    protected override void OnParametersSet()
+    {
+        isChecked = this.IsChecked;
+    }
+
+    private void CheckboxChanged(ChangeEventArgs e)
+    {
+        // get the checkbox state
+        var value = e.Value;
+        isChecked = (bool)value;
+        // call checkWeather() to dynamically update the weather when the measure changes...
+        checkWeather();
+    }
+
+    public void EvalSwitch()
+    {
+        if (!isChecked)
+        {
+            setMeasure = "units=metric&";
+            tempMeasure = "°C";
+            windMeasure = "Kph";
+        }
+        else
+        {
+            setMeasure = "units=imperial&";
+            tempMeasure = "°F";
+            windMeasure = "Mph";
+        }
+    }
+
+    public async void checkWeather()
+    {
+        try
+        {
+            EvalSwitch();
+            using HttpResponseMessage response = await client.GetAsync(apiURI + setMeasure + "q=" + city + "&appid=" + apikey);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException();
+            }
+            response.EnsureSuccessStatusCode();
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            // Used to Debug the contents of the API call...
+            // await JSRuntime.InvokeVoidAsync("console.log", responseBody);
+            var currWeather = JsonConvert.DeserializeObject<JSONWeather>(responseBody);
+
+            // Let's start populating the page fields...
+            city = currWeather.name;
+            temperature = Math.Round(currWeather.main.temp).ToString() + tempMeasure;
+            humidity = currWeather.main.humidity.ToString() + "%";
+            windSpd = Math.Round(currWeather.wind.speed).ToString() + " " + windMeasure;
+
+            // Look up the condition to properly change the image...
+            switch (currWeather.weather[0].main)
+            {
+                case "Clouds":
+                    weatherImg = "images/clouds.png";
+                    break;
+
+                case "Thunderstorm":
+                case "Drizzle":
+                case "Rain":
+                    weatherImg = "images/rain.png";
+                    break;
+
+                case "Atmosphere":
+                    weatherImg = "images/mist.png";
+                    break;
+
+                case "Snow":
+                    weatherImg = "images/snow.png";
+                    break;
+
+                case "Clear":
+                    weatherImg = "images/clear.png";
+                    break;
+
+                default:
+                    weatherImg = "images/clear.png";
+                    break;
+            }
+
+            // IMPORTANT: StateHasChanged() needs to be called so that the app knows to re-render the page.
+            // otherwise, elements of the page won't trigger on this event handler.
+            StateHasChanged();
+
+            // Logging to the Console for debugging purposes...
+            await JSRuntime.InvokeVoidAsync("console.log", city);
+            await JSRuntime.InvokeVoidAsync("console.log", windSpd);
+            await JSRuntime.InvokeVoidAsync("console.log", humidity);
+            await JSRuntime.InvokeVoidAsync("console.log", temperature);
+        }
+        catch (HttpRequestException e)
+        {
+            await JSRuntime.InvokeVoidAsync("console.log", "Exception encountered:" + e.Message);
+
+            // CLear out all relevant fields to clearly show that there was a problem...
+            city = "???";
+            weatherImg = "images/unknown.png";
+            temperature = "--";
+            humidity = "--";
+            windSpd = "--";
+            StateHasChanged();
+        }
+    }
+}

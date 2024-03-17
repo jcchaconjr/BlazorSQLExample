@@ -1,0 +1,73 @@
+﻿@page "/clock"
+@using System.Globalization
+@rendermode InteractiveServer
+
+<body>
+    <h1>Clock</h1>
+    <p>A simple digital clock using C# to display the time.</p>
+
+    <div class="hero">
+        <div class="container">
+            <div class="date">
+                <span>@Day,</span>
+                <span>@Month</span>
+                <span>@Date</span>
+                <span>@Yr</span>
+            </div>
+            <div class="clock">
+                <span id="hrs">@Hr</span>
+                <span>:</span>
+                <span id="min">@Min</span>
+                <span>:</span>
+                <span id="sec">@Sec</span>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+
+@code {
+    DateTime dt = new DateTime();
+
+    public string Hr = "0";
+    public string Min = "0";
+    public string Sec = "0";
+    public string Day = "SATURDAY";
+    public string Date = "17";
+    public string Month = "JANUARY";
+    public string Yr = "2024";
+
+    public string evalLeadingZero (string eval)
+    {
+        if (Int32.Parse(eval) < 10)
+        {
+            eval = "0" + eval;
+        }
+        return eval;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var timer = new System.Threading.Timer(e =>
+        {
+            InvokeAsync(() =>
+            {
+                dt = DateTime.Now;
+
+                Day = dt.DayOfWeek.ToString();
+                Date = dt.Day.ToString();
+                Month = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(dt.Month);
+                Yr = dt.Year.ToString();
+                Hr = evalLeadingZero(dt.Hour.ToString());
+                Min = evalLeadingZero(dt.Minute.ToString());
+                Sec = evalLeadingZero(dt.Second.ToString());
+                StateHasChanged();
+            });
+        },
+        null,
+        TimeSpan.Zero,
+        TimeSpan.FromSeconds(1)
+        );
+    }
+}
