@@ -5,7 +5,7 @@ This is a personal research/educational project to learn Blazor development usin
 I have been using this project to:
 
 - learn the relationships with the Entity Framework.
-- learn how to mange web content in autorized/non-authorized scenarios
+- learn how to manage web content in autorized/non-authorized scenarios
 - design/implement elements with Bootstrap resources
 - convert small projects as Blazor components, refactoring the original JavaScript of those projects with C# code and methods instead
 
