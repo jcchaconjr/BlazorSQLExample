@@ -5,6 +5,7 @@
 
 # User-specific files
 Ignored/
+creds.txt
 *.rsuser
 *.suo
 *.user
