@@ -88,9 +88,36 @@ main {
     z-index: 1000;
 }
 
-    #blazor-error-ui .dismiss {
-        cursor: pointer;
-        position: absolute;
-        right: 0.75rem;
-        top: 0.5rem;
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+/* Stripe effect for the Movie table... */
+::deep tbody tr {
+    background-color: rgba(255,255,255,0.6);
+}
+
+::deep tbody tr:nth-child(even) {
+    background: rgba(0,0,0,0.04);
+}
+
+/* adds the bounce effect for the custom 'MyButton' component... */
+::deep .btn.btn-success:hover {
+    box-shadow: 0 0.5em 0.5em -0.4em rgb(0,0,0);
+    animation-name: bounceup;
+    animation-duration: .2s;
+    transform: translateY(-2px);
+}
+
+@keyframes bounceup {
+    from {
+        transform: translateY(0);
     }
+
+    to {
+        transform: translateY(-2px);
+    }
+}
